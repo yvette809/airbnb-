@@ -1,6 +1,6 @@
-import { /* Listing, Reservation,  */User } from "@prisma/client";
+import { Listing, Reservation, User } from "@prisma/client";
 
-/* xport type SafeListing = Omit<Listing, "createdAt"> & {
+export type SafeListing = Omit<Listing, "createdAt"> & {
   createdAt: string;
 };
 
@@ -12,7 +12,7 @@ export type SafeReservation = Omit<
   startDate: string;
   endDate: string;
   listing: SafeListing;
-}; */
+};
 
 export type SafeUser = Omit<
   User,

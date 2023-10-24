@@ -1,50 +1,92 @@
-import ClientOnly from "./components/ClientOnly";
-import Container from "./components/Container";
-import EmptyState from "./components/EmptyState";
-//import getListings from "./actions/getListings";
-import getCurrentUser from "./actions/getCurrentUser";
-import ListingCard from "./components/listings/ListingCard";
-import getListings, { 
-  IListingsParams
-} from "@/app/actions/getListings";
+import prisma from "@/app/libs/prismadb";
 
+export interface IListingsParams {
+  userId?: string;
+  guestCount?: number;
+  roomCount?: number;
+  bathroomCount?: number;
+  startDate?: string;
+  endDate?: string;
+  locationValue?: string;
+  category?: string;
+}
 
-interface HomeProps {
-  searchParams: IListingsParams
-};
+export default async function getListings(params: IListingsParams) {
+  try {
+    const {
+      userId,
+      roomCount,
+      guestCount,
+      bathroomCount,
+      locationValue,
+      startDate,
+      endDate,
+      category,
+    } = params;
 
-export default  async function Home({ searchParams }: HomeProps) {
-  const listings = await getListings(searchParams)
-  const currentUser = await getCurrentUser()
+    const query: any = {};
 
+    if (userId) {
+      query.userId = userId;
+    }
 
-  if(listings.length=== 0){
-    return(
-      <ClientOnly>
-        <EmptyState showReset/>
-      </ClientOnly>
-    )
+    if (category) {
+      query.category = category;
+    }
+
+    if (roomCount !== undefined) {
+      query.roomCount = {
+        gte: roomCount
+      }
+    }
+
+    if (guestCount !== undefined) {
+      query.guestCount = {
+        gte: guestCount
+      }
+    }
+
+    if (bathroomCount !== undefined) {
+      query.bathroomCount = {
+        gte: bathroomCount
+      }
+    }
+
+    if (locationValue) {
+      query.locationValue = locationValue;
+    }
+
+    if (startDate && endDate) {
+      query.reservations = {
+        none: {
+          OR: [
+            {
+              endDate: { gte: startDate },
+              startDate: { lte: startDate }
+            },
+            {
+              startDate: { lte: endDate },
+              endDate: { gte: endDate }
+            }
+          ]
+        }
+      };
+    }
+
+    const listings = await prisma.listing.findMany({
+      where: query,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    const safeListings = listings.map((listing) => ({
+      ...listing,
+      createdAt: listing.createdAt.toISOString(),
+    }));
+
+    return safeListings;
+  } catch (error) {
+   console.log(error)
   }
-  return (
-    <ClientOnly>
-      <Container>
-        <div className=" pt-24
-            grid 
-            grid-cols-1 
-            sm:grid-cols-2 
-            md:grid-cols-3 
-            lg:grid-cols-4
-            xl:grid-cols-5
-            2xl:grid-cols-6
-            gap-8">
-        {listings.map((listing:any)=>(
-          <ListingCard key={listing.id} data={listing} currentUser={currentUser}/>
-        ))}
-        </div>
-
-      </Container>
-      
-      </ClientOnly>
-    
-  )
 }

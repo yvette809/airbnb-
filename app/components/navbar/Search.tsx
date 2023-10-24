@@ -7,9 +7,11 @@ import { differenceInDays } from 'date-fns';
 
 import useSearchModal from '@/app/hooks/useSearchModal';
 import useCountries from '@/app/hooks/useCountries';
+import useLoginModal from '@/app/hooks/useLoginModal';
 
 const Search = () => {
-  const searchModal = useSearchModal();
+  const searchModal = useSearchModal()
+  const login = useLoginModal();
   const params = useSearchParams();
   const { getByValue } = useCountries();
 

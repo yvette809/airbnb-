@@ -14,3 +14,5 @@ const useSearchModal = create<SearchModalStore>((set) => ({
 
 
 export default useSearchModal;
+
+

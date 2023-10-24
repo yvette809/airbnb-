@@ -20,6 +20,7 @@
     "date-fns": "^2.30.0",
     "leaflet": "^1.9.4",
     "next": "13.4.13",
+    "next-auth": "^4.24.3",
     "next-cloudinary": "^4.18.0",
     "postcss": "8.4.27",
     "query-string": "^8.1.0",

@@ -12,7 +12,12 @@ interface HomeProps {
   searchParams: IListingsParams
 };
 
+
 const Home = async ({ searchParams }: HomeProps) => {
+
+  if (!searchParams) {
+    return [];
+  }
   const listings = await getListings(searchParams);
   const currentUser = await getCurrentUser();
 

@@ -32,8 +32,6 @@ export default async function getListings(
 
     if (userId) {
       query.userId = userId;
-    }else{
-      return []
     }
 
     if (category) {

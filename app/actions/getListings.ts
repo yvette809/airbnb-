@@ -15,43 +15,47 @@ export interface IListingsParams {
 
 export default async function getListings(
   params: IListingsParams
-): Promise<any[]> {
+) {
   try {
     const {
       userId,
-      roomCount,
-      guestCount,
-      bathroomCount,
+      roomCount, 
+      guestCount, 
+      bathroomCount, 
       locationValue,
       startDate,
       endDate,
       category,
     } = params;
 
-    // Check the value of the `userId` parameter before using it.
-    if (!userId) {
-      // Serve a static page.
-      return [];
+    let query: any = {};
+
+    if (userId) {
+      query.userId = userId;
+    }else{
+      return []
     }
 
-    let query: any = {};
+    if (category) {
+      query.category = category;
+    }
 
     if (roomCount) {
       query.roomCount = {
-        gte: +roomCount,
-      };
+        gte: +roomCount
+      }
     }
 
     if (guestCount) {
       query.guestCount = {
-        gte: +guestCount,
-      };
+        gte: +guestCount
+      }
     }
 
     if (bathroomCount) {
       query.bathroomCount = {
-        gte: +bathroomCount,
-      };
+        gte: +bathroomCount
+      }
     }
 
     if (locationValue) {
@@ -65,27 +69,25 @@ export default async function getListings(
             OR: [
               {
                 endDate: { gte: startDate },
-                startDate: { lte: startDate },
+                startDate: { lte: startDate }
               },
               {
                 startDate: { lte: endDate },
-                endDate: { gte: endDate },
-              },
-            ],
-          },
-        },
-      };
+                endDate: { gte: endDate }
+              }
+            ]
+          }
+        }
+      }
     }
 
-    // Get the listings from the database.
     const listings = await prisma.listing.findMany({
       where: query,
       orderBy: {
-        createdAt: 'desc',
-      },
+        createdAt: 'desc'
+      }
     });
 
-    // Convert the listings to a safe format.
     const safeListings = listings.map((listing) => ({
       ...listing,
       createdAt: listing.createdAt.toISOString(),

@@ -1,4 +1,5 @@
 
+
 import prisma from "@/app/libs/prismadb";
 
 export interface IListingsParams {
@@ -12,7 +13,9 @@ export interface IListingsParams {
   category?: string;
 }
 
-export default async function getListings(params: IListingsParams) {
+export default async function getListings(
+  params: IListingsParams
+): Promise<any[]> {
   try {
     const {
       userId,
@@ -25,32 +28,30 @@ export default async function getListings(params: IListingsParams) {
       category,
     } = params;
 
-    const query: any = {};
-
-    if (userId) {
-      query.userId = userId;
+    // Check the value of the `userId` parameter before using it.
+    if (!userId) {
+      // Serve a static page.
+      return [];
     }
 
-    if (category) {
-      query.category = category;
-    }
+    let query: any = {};
 
-    if (roomCount !== undefined) {
+    if (roomCount) {
       query.roomCount = {
-        gte: roomCount
-      }
+        gte: +roomCount,
+      };
     }
 
-    if (guestCount !== undefined) {
+    if (guestCount) {
       query.guestCount = {
-        gte: guestCount
-      }
+        gte: +guestCount,
+      };
     }
 
-    if (bathroomCount !== undefined) {
+    if (bathroomCount) {
       query.bathroomCount = {
-        gte: bathroomCount
-      }
+        gte: +bathroomCount,
+      };
     }
 
     if (locationValue) {
@@ -58,36 +59,40 @@ export default async function getListings(params: IListingsParams) {
     }
 
     if (startDate && endDate) {
-      query.reservations = {
-        none: {
-          OR: [
-            {
-              endDate: { gte: startDate },
-              startDate: { lte: startDate }
-            },
-            {
-              startDate: { lte: endDate },
-              endDate: { gte: endDate }
-            }
-          ]
-        }
+      query.NOT = {
+        reservations: {
+          some: {
+            OR: [
+              {
+                endDate: { gte: startDate },
+                startDate: { lte: startDate },
+              },
+              {
+                startDate: { lte: endDate },
+                endDate: { gte: endDate },
+              },
+            ],
+          },
+        },
       };
     }
 
+    // Get the listings from the database.
     const listings = await prisma.listing.findMany({
       where: query,
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     });
 
+    // Convert the listings to a safe format.
     const safeListings = listings.map((listing) => ({
       ...listing,
       createdAt: listing.createdAt.toISOString(),
     }));
 
     return safeListings;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    throw new Error(error);
   }
 }

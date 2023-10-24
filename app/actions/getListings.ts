@@ -1,5 +1,4 @@
 
-
 import prisma from "@/app/libs/prismadb";
 
 export interface IListingsParams {
@@ -13,22 +12,20 @@ export interface IListingsParams {
   category?: string;
 }
 
-export default async function getListings(
-  params: IListingsParams
-) {
+export default async function getListings(params: IListingsParams) {
   try {
     const {
       userId,
-      roomCount, 
-      guestCount, 
-      bathroomCount, 
+      roomCount,
+      guestCount,
+      bathroomCount,
       locationValue,
       startDate,
       endDate,
       category,
     } = params;
 
-    let query: any = {};
+    const query: any = {};
 
     if (userId) {
       query.userId = userId;
@@ -38,21 +35,21 @@ export default async function getListings(
       query.category = category;
     }
 
-    if (roomCount) {
+    if (roomCount !== undefined) {
       query.roomCount = {
-        gte: +roomCount
+        gte: roomCount
       }
     }
 
-    if (guestCount) {
+    if (guestCount !== undefined) {
       query.guestCount = {
-        gte: +guestCount
+        gte: guestCount
       }
     }
 
-    if (bathroomCount) {
+    if (bathroomCount !== undefined) {
       query.bathroomCount = {
-        gte: +bathroomCount
+        gte: bathroomCount
       }
     }
 
@@ -61,22 +58,20 @@ export default async function getListings(
     }
 
     if (startDate && endDate) {
-      query.NOT = {
-        reservations: {
-          some: {
-            OR: [
-              {
-                endDate: { gte: startDate },
-                startDate: { lte: startDate }
-              },
-              {
-                startDate: { lte: endDate },
-                endDate: { gte: endDate }
-              }
-            ]
-          }
+      query.reservations = {
+        none: {
+          OR: [
+            {
+              endDate: { gte: startDate },
+              startDate: { lte: startDate }
+            },
+            {
+              startDate: { lte: endDate },
+              endDate: { gte: endDate }
+            }
+          ]
         }
-      }
+      };
     }
 
     const listings = await prisma.listing.findMany({
@@ -92,7 +87,7 @@ export default async function getListings(
     }));
 
     return safeListings;
-  } catch (error: any) {
-    throw new Error(error);
+  } catch (error) {
+    console.log(error);
   }
 }
